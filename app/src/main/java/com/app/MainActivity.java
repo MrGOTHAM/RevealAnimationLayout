@@ -1,13 +1,13 @@
 package com.app;
 
-import android.support.v7.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.revealanimation.RevealAnimationLayout;
-
+import androidx.appcompat.app.AppCompatActivity;
 import app.tcl.com.animation.R;
+import com.revealanimation.RevealAnimationLayout;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 

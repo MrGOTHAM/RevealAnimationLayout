@@ -12,7 +12,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.Region;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -95,7 +94,6 @@ public class RevealAnimationLayout extends FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-//        mRCHelper.onSizeChanged(this, w, h);
         mLayer.set(0, 0, w, h);
         refreshRegion(this);
     }
@@ -114,41 +112,23 @@ public class RevealAnimationLayout extends FrameLayout {
         if (mAnimaType == AnimaType.Circle || mAnimaType == AnimaType.BackCircle) {
             float d = (float) Math.hypot(areas.width(), areas.height());
             float r = d / 2 * mAnimatorValue;
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-                mClipPath.addCircle(center.x, center.y, r, Path.Direction.CW);
-                mClipPath.moveTo(0, 0);  // 通过空操作让Path区域占满画布
-                mClipPath.moveTo(w, h);
-            } else {
                 float y = h / 2 - r;
                 mClipPath.moveTo(areas.left, y);
                 mClipPath.addCircle(center.x, center.y, r, Path.Direction.CW);
-            }
+
         } else if (mAnimaType == AnimaType.UpDown || mAnimaType == AnimaType.BackUpDown) {
             float top = areas.height() / 2 * (1 - mAnimatorValue);
             float bottom = areas.height() / 2 * (1 + mAnimatorValue);
-
             RectF mRectF = new RectF(areas.left, top, areas.right, bottom);
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-                mClipPath.addRect(mRectF, Path.Direction.CW);
-                mClipPath.moveTo(0, 0);  // 通过空操作让Path区域占满画布
-                mClipPath.moveTo(w, h);
-            } else {
                 mClipPath.moveTo(areas.left, top);
                 mClipPath.addRect(mRectF, Path.Direction.CW);
-            }
+
         } else if (mAnimaType == AnimaType.LeftRight || mAnimaType == AnimaType.BackLeftRight) {
             float left = areas.width() / 2 * (1 - mAnimatorValue);
             float right = areas.width() / 2 * (1 + mAnimatorValue);
-
             RectF mRectF = new RectF(left, areas.top, right, areas.bottom);
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-                mClipPath.addRect(mRectF, Path.Direction.CW);
-                mClipPath.moveTo(0, 0);  // 通过空操作让Path区域占满画布
-                mClipPath.moveTo(w, h);
-            } else {
                 mClipPath.moveTo(left, areas.top);
                 mClipPath.addRect(mRectF, Path.Direction.CW);
-            }
         }
     }
 
@@ -168,7 +148,7 @@ public class RevealAnimationLayout extends FrameLayout {
         canvas.restore();
     }
 
-
+// path 用来剪切或在路径上绘制文本
     public void onClipDraw(Canvas canvas) {
         mPaint.setColor(Color.WHITE);
         mPaint.setStyle(Paint.Style.FILL);
@@ -176,11 +156,13 @@ public class RevealAnimationLayout extends FrameLayout {
         mPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
 
         mOpClipPath.reset();
+        // 将要被覆盖的图片所在矩形大小
         mOpClipPath.addRect(0, 0, mLayer.width(), mLayer.height(), Path.Direction.CW);
 
+        // 返回是否操作成功， 从第一条路径减去第二条路径（把图1中被图二覆盖的部分减去，仅显示图1未覆盖部分，图二不显示）
+        // mOpClipPath为图1， mClipPath 为图2
         mOpClipPath.op(mClipPath, Path.Op.DIFFERENCE);
         canvas.drawPath(mOpClipPath, mPaint);
-
     }
 
 
@@ -205,7 +187,6 @@ public class RevealAnimationLayout extends FrameLayout {
      * 开启动画
      * @param animaType 动画类型
      */
-
     public void startAnimal(AnimaType animaType) {
         this.mAnimaType = animaType;
         setVisibility(View.VISIBLE);
@@ -219,6 +200,4 @@ public class RevealAnimationLayout extends FrameLayout {
         }
         mStartingAnimator.start();
     }
-
-
 }
